@@ -1,0 +1,56 @@
+@import 'tailwindcss';
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    font-family:
+      'SF Pro Text',
+      'Segoe UI',
+      system-ui,
+      -apple-system,
+      sans-serif;
+    background: #f5f7fb;
+    color: #17233c;
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .field-input {
+    @apply h-[52px] w-full rounded-xl border border-[#cfd6e3] bg-white px-4 text-base font-medium text-[#25324b] outline-none transition hover:border-[#aab4c7] focus:border-[#4356b4] focus:ring-4 focus:ring-[#4356b4]/10;
+  }
+
+  .primary-button {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#3446a5] px-5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(52,70,165,.25)] transition hover:bg-[#2d3c90] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .secondary-button {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#d3d9e6] bg-white px-5 text-sm font-bold text-[#3a4660] transition hover:bg-[#f5f7fb];
+  }
+
+  .summary-card {
+    @apply flex items-center gap-3 rounded-2xl border border-[#e0e4ec] bg-white px-4 py-3.5 shadow-[0_6px_20px_rgba(31,44,78,.04)];
+  }
+
+  .summary-icon {
+    @apply grid h-10 w-10 place-items-center rounded-xl;
+  }
+
+  .summary-card strong {
+    @apply block text-sm font-bold text-[#24304a];
+  }
+
+  .summary-card span:last-child {
+    @apply block text-xs text-[#708097];
+  }
+}
