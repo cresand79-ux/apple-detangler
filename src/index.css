@@ -35,7 +35,7 @@
   }
 
   .secondary-button {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#d3d9e6] bg-white px-5 text-sm font-bold text-[#3a4660] transition hover:bg-[#f5f7fb];
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#d3d9e6] bg-white px-5 text-sm font-bold text-[#3a4660] transition hover:bg-[#f5f7fb] disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .summary-card {
