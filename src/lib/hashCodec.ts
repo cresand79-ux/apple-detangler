@@ -17,6 +17,56 @@ export function decodeCi(payload: string): DeviceCI | null {
   }
 }
 
+/** Full household snapshot for parents → Andrew share links. */
+export function encodeHousehold(devices: DeviceCI[]): string {
+  return compressToEncodedURIComponent(JSON.stringify(devices));
+}
+
+export function decodeHousehold(payload: string): DeviceCI[] | null {
+  try {
+    const json = decompressFromEncodedURIComponent(payload);
+    if (!json) return null;
+    const parsed = JSON.parse(json) as unknown;
+    if (!Array.isArray(parsed) || parsed.length === 0) return null;
+    const devices = parsed.filter(
+      (d): d is DeviceCI =>
+        !!d && typeof d === 'object' && typeof (d as DeviceCI).id === 'string' && typeof (d as DeviceCI).name === 'string',
+    );
+    return devices.length ? devices : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Share URL that opens Andrew’s planner and imports all device answers. */
+export function buildHouseholdShareUrl(devices: DeviceCI[]): string {
+  const base = `${window.location.origin}${import.meta.env.BASE_URL}`.replace(/\/?$/, '/');
+  return `${base}matrix#household=${encodeHousehold(devices)}`;
+}
+
+const ANDREW_EMAIL = 'andy.cresswell@outlook.com';
+const SHARE_SUBJECT = 'apple untangler';
+
+/** Open a mailto to Andrew with the share URL in the body (falls back if the link is too long). */
+export async function emailHouseholdToAndrew(devices: DeviceCI[]): Promise<'mailed' | 'copied-mailed' | 'failed'> {
+  const shareUrl = buildHouseholdShareUrl(devices);
+  const fullBody = `Hi Andrew,\n\nHere are the Apple Account check results from this computer:\n\n${shareUrl}\n`;
+  const fullMailto = `mailto:${ANDREW_EMAIL}?subject=${encodeURIComponent(SHARE_SUBJECT)}&body=${encodeURIComponent(fullBody)}`;
+
+  // Many mail apps truncate very long mailto URLs; keep a safe budget.
+  if (fullMailto.length <= 1800) {
+    window.location.href = fullMailto;
+    return 'mailed';
+  }
+
+  const copied = await copyText(shareUrl);
+  if (!copied) return 'failed';
+  const shortBody =
+    'Hi Andrew,\n\nThe results link was too long for email automatically — please paste it from the clipboard (we copied it for you).\n';
+  window.location.href = `mailto:${ANDREW_EMAIL}?subject=${encodeURIComponent(SHARE_SUBJECT)}&body=${encodeURIComponent(shortBody)}`;
+  return 'copied-mailed';
+}
+
 export function encodePlan(plan: MasterPlan): string {
   return compressToEncodedURIComponent(JSON.stringify(plan));
 }
@@ -41,10 +91,12 @@ export function buildShareUrl(fragment: string): string {
 export function parseHash():
   | { kind: 'ci'; payload: string }
   | { kind: 'plan'; payload: string }
+  | { kind: 'household'; payload: string }
   | null {
   const hash = window.location.hash.replace(/^#/, '');
   if (hash.startsWith('ci=')) return { kind: 'ci', payload: hash.slice(3) };
   if (hash.startsWith('plan=')) return { kind: 'plan', payload: hash.slice(5) };
+  if (hash.startsWith('household=')) return { kind: 'household', payload: hash.slice(10) };
   return null;
 }
 

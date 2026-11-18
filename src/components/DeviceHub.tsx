@@ -1,5 +1,11 @@
-import { ArrowRight, Check, Clock, Lock, Plus, Users } from 'lucide-react';
+import { ArrowRight, Check, Clock, Copy, Lock, Mail, Plus, Users } from 'lucide-react';
+import { useState } from 'react';
 import { deviceSubtitle } from '../data/presets';
+import {
+  buildHouseholdShareUrl,
+  copyText,
+  emailHouseholdToAndrew,
+} from '../lib/hashCodec';
 import type { DeviceCI } from '../types';
 import { DeviceIconForName } from './DeviceIcon';
 
@@ -12,8 +18,40 @@ export function DeviceHub({
   onSelect: (device: DeviceCI) => void;
   onAdd: () => void;
 }) {
+  const [shareFlash, setShareFlash] = useState<string | null>(null);
   const checkedCount = devices.filter((d) => d.checked).length;
   const knownCount = devices.filter((d) => !d.isCustom).length;
+  const allChecked = devices.length > 0 && checkedCount === devices.length;
+
+  const flash = (message: string) => {
+    setShareFlash(message);
+    window.setTimeout(() => setShareFlash(null), 3500);
+  };
+
+  const copyShareLink = async () => {
+    const url = buildHouseholdShareUrl(devices);
+    const ok = await copyText(url);
+    flash(
+      ok
+        ? 'Link copied — paste it into WhatsApp or an email to Andrew.'
+        : 'Could not copy the link. Try Email Andrew instead.',
+    );
+  };
+
+  const emailAndrew = async () => {
+    if (!allChecked) {
+      flash('Finish every device check first (green “Checked”), then try again.');
+      return;
+    }
+    const result = await emailHouseholdToAndrew(devices);
+    if (result === 'mailed') {
+      flash('Opening email to Andrew with your results link…');
+    } else if (result === 'copied-mailed') {
+      flash('Link copied, and email opened — paste the link into the message if it is missing.');
+    } else {
+      flash('Could not open email. Use Copy link and paste it into a message to Andrew.');
+    }
+  };
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-8 md:py-12">
@@ -111,6 +149,67 @@ export function DeviceHub({
         </span>
         <span className="font-bold text-[#4052a8]">{checkedCount} checks complete</span>
       </div>
+
+      <section className="mt-8 overflow-hidden rounded-2xl border border-[#ccd4f0] bg-white shadow-[0_10px_35px_rgba(31,44,78,.055)]">
+        <div className="border-b border-[#e8ebf4] bg-[#eef1ff] px-5 py-4 md:px-6">
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-[#5363b1]">
+            When you are finished
+          </p>
+          <h2 className="mt-1 text-xl font-bold text-[#243474]">Share with Andrew</h2>
+        </div>
+        <div className="space-y-4 px-5 py-5 md:px-6 md:py-6">
+          <ol className="list-decimal space-y-2 pl-5 text-[15px] leading-6 text-[#4d5a78]">
+            <li>
+              Complete every device card above until each one shows green{' '}
+              <strong className="text-[#20745e]">Checked</strong> (
+              {checkedCount} of {devices.length} done).
+            </li>
+            <li>
+              Tap <strong>Email Andrew</strong> — your mail app opens to{' '}
+              <span className="whitespace-nowrap">andy.cresswell@outlook.com</span> with the results
+              link already in the message. Send it.
+            </li>
+            <li>
+              Or tap <strong>Copy link</strong> and paste that link into WhatsApp or any email to
+              Andrew.
+            </li>
+          </ol>
+          {!allChecked && (
+            <p className="rounded-xl border border-[#efdfa7] bg-[#fff7df] px-4 py-3 text-sm font-semibold text-[#8a6013]">
+              {devices.length - checkedCount} device
+              {devices.length - checkedCount === 1 ? '' : 's'} still not checked. Finish those first
+              so Andrew gets the full picture.
+            </p>
+          )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <button
+              className="primary-button"
+              disabled={!allChecked}
+              onClick={() => void emailAndrew()}
+              type="button"
+            >
+              <Mail size={18} /> Email Andrew
+            </button>
+            <button
+              className="secondary-button"
+              disabled={!allChecked}
+              onClick={() => void copyShareLink()}
+              type="button"
+            >
+              <Copy size={18} /> Copy link
+            </button>
+          </div>
+          {shareFlash && (
+            <p className="rounded-xl border border-[#cce8de] bg-[#eaf7f2] px-4 py-3 text-sm font-semibold text-[#26705e]">
+              {shareFlash}
+            </p>
+          )}
+          <p className="text-sm leading-5 text-[#6d788c]">
+            The link only contains what you typed here (emails and versions)—never passwords. Andrew
+            opens it on his computer to review the Master Matrix.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }

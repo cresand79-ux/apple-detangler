@@ -6,7 +6,7 @@ import { Matrix } from './components/Matrix';
 import { Runbook } from './components/Runbook';
 import { createCustomDevice } from './data/presets';
 import { modeFromPath, navigateToMode, restoreGhPagesRedirect, type AppMode } from './lib/appMode';
-import { decodeCi, decodePlan, parseHash } from './lib/hashCodec';
+import { decodeCi, decodeHousehold, decodePlan, parseHash } from './lib/hashCodec';
 import { generateRunbook } from './lib/runbook';
 import {
   loadDevices,
@@ -102,6 +102,22 @@ export default function App() {
         setSelectedId(ci.id);
         setView('inspector');
         setHashNotice(`Imported device passport: ${ci.name}`);
+        return;
+      }
+
+      if (parsed.kind === 'household') {
+        const household = decodeHousehold(parsed.payload);
+        if (!household) {
+          setHashNotice('Could not read that household results link.');
+          return;
+        }
+        if (modeFromPath() !== 'planner') navigateToMode('planner');
+        setMode('planner');
+        setDevices((prev) => upsertMany(prev, household));
+        setView('matrix');
+        setHashNotice(
+          `Imported household check (${household.length} device${household.length === 1 ? '' : 's'}).`,
+        );
         return;
       }
 
@@ -266,6 +282,10 @@ export default function App() {
                   partway through.
                 </li>
                 <li>Open each device card and copy only what you see on screen (emails and versions).</li>
+                <li>
+                  When every card is Checked, use Share with Andrew at the bottom to email him the
+                  results link.
+                </li>
               </ul>
             ) : (
               <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#4d5a78]">
