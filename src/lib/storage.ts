@@ -11,6 +11,15 @@ function isDeviceCI(value: unknown): value is DeviceCI {
   return typeof d.id === 'string' && typeof d.name === 'string';
 }
 
+function normalizeDevice(device: DeviceCI): DeviceCI {
+  return {
+    ...device,
+    devicesOnAccount: Array.isArray(device.devicesOnAccount) ? device.devicesOnAccount : [],
+    otherDevicesOnAccount:
+      typeof device.otherDevicesOnAccount === 'string' ? device.otherDevicesOnAccount : '',
+  };
+}
+
 export function loadDevices(): DeviceCI[] {
   try {
     const raw = localStorage.getItem(DEVICES_KEY);
@@ -21,15 +30,15 @@ export function loadDevices(): DeviceCI[] {
     }
     const byId = new Map<string, DeviceCI>();
     for (const preset of PRESET_DEVICES) {
-      byId.set(preset.id, { ...preset });
+      byId.set(preset.id, normalizeDevice({ ...preset }));
     }
     for (const item of parsed) {
       if (!isDeviceCI(item)) continue;
       const existing = byId.get(item.id);
       if (existing && !item.isCustom) {
-        byId.set(item.id, { ...existing, ...item, isCustom: false });
+        byId.set(item.id, normalizeDevice({ ...existing, ...item, isCustom: false }));
       } else {
-        byId.set(item.id, item);
+        byId.set(item.id, normalizeDevice(item));
       }
     }
     // Keep presets first in stable order, then customs

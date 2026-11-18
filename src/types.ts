@@ -33,12 +33,17 @@ export type DeviceCI = {
   deviceNameSeen: string;
   softwareVersion: string;
   primaryAppleId: string;
+  /** Household device ids that appear under this Apple Account’s Devices list */
+  devicesOnAccount: string[];
+  /** Names of other / unrecognised devices listed on the account */
+  otherDevicesOnAccount: string;
   mediaPurchases: string;
   messagesFaceTime: MessagesChoice;
   contactsIcloud: YesNoUnsure;
-  /** watchOS-only */
+  /** watchOS-only — which iPhone’s Watch app shows this watch */
   watchPaired: PairingChoice;
   watchVersion: string;
+  /** @deprecated kept for older saved answers; pairing is captured via watchPaired */
   pairingVerifiedBeforeSignOut: YesNoUnsure;
   /** Marked when user finishes a check */
   checked: boolean;

@@ -5,6 +5,7 @@ import { Inspector } from './components/Inspector';
 import { Matrix } from './components/Matrix';
 import { Runbook } from './components/Runbook';
 import { createCustomDevice } from './data/presets';
+import { modeFromPath, navigateToMode, restoreGhPagesRedirect, type AppMode } from './lib/appMode';
 import { decodeCi, decodePlan, parseHash } from './lib/hashCodec';
 import { generateRunbook } from './lib/runbook';
 import {
@@ -35,8 +36,16 @@ function upsertMany(list: DeviceCI[], incoming: DeviceCI[]): DeviceCI[] {
   return incoming.reduce((acc, d) => upsertDevice(acc, d), list);
 }
 
+function initialView(mode: AppMode): View {
+  return mode === 'planner' ? 'matrix' : 'hub';
+}
+
 export default function App() {
-  const [view, setView] = useState<View>('hub');
+  const [mode, setMode] = useState<AppMode>(() => {
+    restoreGhPagesRedirect();
+    return modeFromPath();
+  });
+  const [view, setView] = useState<View>(() => initialView(modeFromPath()));
   const [devices, setDevices] = useState<DeviceCI[]>(() => loadDevices());
   const [selectedId, setSelectedId] = useState<string | null>(() => loadSelectedId());
   const [plan, setPlan] = useState<MasterPlan | null>(null);
@@ -49,7 +58,6 @@ export default function App() {
     [devices, selectedId],
   );
 
-  // Persist devices
   useEffect(() => {
     saveDevices(devices);
   }, [devices]);
@@ -62,17 +70,18 @@ export default function App() {
     saveRunbookDone(runbookDone);
   }, [runbookDone]);
 
-  // GitHub Pages SPA redirect restore
   useEffect(() => {
-    const redirect = sessionStorage.getItem('gh-pages-redirect');
-    if (redirect) {
-      sessionStorage.removeItem('gh-pages-redirect');
-      // Path already landed on index; hash may be in stored value
-      const hashIdx = redirect.indexOf('#');
-      if (hashIdx >= 0) {
-        window.location.hash = redirect.slice(hashIdx);
-      }
-    }
+    const syncMode = () => {
+      const next = modeFromPath();
+      setMode(next);
+      setView((current) => {
+        if (next === 'planner' && (current === 'hub' || current === 'inspector')) return 'matrix';
+        if (next === 'collect' && (current === 'matrix' || current === 'runbook')) return 'hub';
+        return current;
+      });
+    };
+    window.addEventListener('popstate', syncMode);
+    return () => window.removeEventListener('popstate', syncMode);
   }, []);
 
   // Ingest #ci= / #plan= hashes
@@ -84,9 +93,11 @@ export default function App() {
       if (parsed.kind === 'ci') {
         const ci = decodeCi(parsed.payload);
         if (!ci) {
-          setHashNotice('Could not read that #ci= device link.');
+          setHashNotice('Could not read that device link.');
           return;
         }
+        if (modeFromPath() !== 'collect') navigateToMode('collect');
+        setMode('collect');
         setDevices((prev) => upsertDevice(prev, ci));
         setSelectedId(ci.id);
         setView('inspector');
@@ -97,9 +108,11 @@ export default function App() {
       if (parsed.kind === 'plan') {
         const master = decodePlan(parsed.payload);
         if (!master) {
-          setHashNotice('Could not read that #plan= runbook link.');
+          setHashNotice('Could not read that runbook link.');
           return;
         }
+        if (modeFromPath() !== 'planner') navigateToMode('planner');
+        setMode('planner');
         setDevices((prev) => upsertMany(prev, master.devices));
         setPlan(master);
         setView('runbook');
@@ -159,8 +172,11 @@ export default function App() {
 
   return (
     <AppShell
+      mode={mode}
       onHelp={() => setHelpOpen(true)}
       setView={(v) => {
+        if (mode === 'collect' && (v === 'matrix' || v === 'runbook')) return;
+        if (mode === 'planner' && (v === 'hub' || v === 'inspector')) return;
         if (v === 'inspector' && !selectedId && devices[0]) {
           setSelectedId(devices[0].id);
         }
@@ -181,13 +197,14 @@ export default function App() {
         </div>
       )}
 
-      {view === 'hub' && (
+      {mode === 'collect' && view === 'hub' && (
         <DeviceHub devices={devices} onAdd={addDevice} onSelect={selectDevice} />
       )}
 
-      {view === 'inspector' && selected && (
+      {mode === 'collect' && view === 'inspector' && selected && (
         <Inspector
           device={selected}
+          householdDevices={devices}
           indexLabel={presetIndexLabel}
           onBack={() => setView('hub')}
           onChange={updateDevice}
@@ -196,7 +213,7 @@ export default function App() {
         />
       )}
 
-      {view === 'inspector' && !selected && (
+      {mode === 'collect' && view === 'inspector' && !selected && (
         <div className="mx-auto max-w-lg px-5 py-16 text-center">
           <p className="text-lg font-bold">No device selected</p>
           <button className="primary-button mt-4" onClick={() => setView('hub')} type="button">
@@ -205,7 +222,7 @@ export default function App() {
         </div>
       )}
 
-      {view === 'matrix' && (
+      {mode === 'planner' && view === 'matrix' && (
         <Matrix
           devices={devices}
           onGenerateRunbook={goGenerateRunbook}
@@ -213,7 +230,7 @@ export default function App() {
         />
       )}
 
-      {view === 'runbook' && plan && (
+      {mode === 'planner' && view === 'runbook' && plan && (
         <Runbook
           done={runbookDone}
           onBack={() => setView('matrix')}
@@ -224,7 +241,7 @@ export default function App() {
         />
       )}
 
-      {view === 'runbook' && !plan && (
+      {mode === 'planner' && view === 'runbook' && !plan && (
         <div className="mx-auto max-w-lg px-5 py-16 text-center">
           <p className="text-lg font-bold">No runbook yet</p>
           <button className="primary-button mt-4" onClick={goGenerateRunbook} type="button">
@@ -241,17 +258,31 @@ export default function App() {
         >
           <div className="max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="text-xl font-bold">How this works</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#4d5a78]">
-              <li>Everything stays in your browser (localStorage). No passwords are collected.</li>
-              <li>
-                Parents fill a device passport, then tap “Copy Link for This Device” — Andy opens
-                the <code>#ci=</code> link to upsert that device.
-              </li>
-              <li>
-                Andy’s Master Matrix flags shared Apple IDs, cross-wired Messages, legacy OS versions,
-                and watch pairing risks, then builds a 3-phase <code>#plan=</code> runbook.
-              </li>
-            </ul>
+            {mode === 'collect' ? (
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#4d5a78]">
+                <li>Everything stays in your browser. No passwords are collected.</li>
+                <li>
+                  Stay on one computer for every device card—don’t switch browsers or devices
+                  partway through.
+                </li>
+                <li>Open each device card and copy only what you see on screen (emails and versions).</li>
+              </ul>
+            ) : (
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-[#4d5a78]">
+                <li>
+                  This planner page is for Andrew. Parents use the main collect link (Devices), not
+                  this URL.
+                </li>
+                <li>
+                  On the same computer parents used, answers appear here automatically from that
+                  browser’s saved data.
+                </li>
+                <li>
+                  The Master Matrix flags shared Apple IDs, Messages issues, legacy OS versions, and
+                  watch pairing—then builds a 3-phase runbook.
+                </li>
+              </ul>
+            )}
             <button
               className="primary-button mt-5 w-full"
               onClick={() => setHelpOpen(false)}

@@ -15,7 +15,7 @@ export function generateRunbook(devices: DeviceCI[]): MasterPlan {
       title: `Confirm passport for ${d.name}`,
       body: d.checked
         ? `Already checked. Primary: ${d.primaryAppleId || 'not recorded'}. OS: ${d.softwareVersion || 'not recorded'}.`
-        : `Open the inspector for ${d.name} and fill Primary Apple Account, Media & Purchases, Messages/FaceTime, and software version.`,
+        : `Open the inspector for ${d.name} and fill Apple Account (email, iCloud Contacts, Media & Purchases, Devices list), About, and Messages/FaceTime.`,
     })),
   };
 
@@ -61,7 +61,7 @@ export function generateRunbook(devices: DeviceCI[]): MasterPlan {
       id: `watch:${d.id}`,
       deviceId: d.id,
       title: `Watch first — ${d.name}`,
-      body: `Confirm ${d.name} pairing (${d.watchPaired || 'unknown'}) via the Watch app → General → About. Do not sign the paired iPhone out until this is verified.`,
+      body: `${d.name} is listed as: ${d.watchPaired || 'phone not recorded yet'}. Do any Apple ID changes on that iPhone only after Andrew’s plan says so—don’t unpair the watch yourself.`,
     })),
     ...mumDevices.map((d) => ({
       id: `migrate-mum:${d.id}`,

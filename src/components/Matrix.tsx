@@ -12,6 +12,17 @@ import { analyzeConflicts, statusForDevice } from '../lib/conflicts';
 import type { ConflictSeverity, DeviceCI } from '../types';
 import { DeviceIconForName } from './DeviceIcon';
 
+function linkedDevicesLabel(device: DeviceCI, household: DeviceCI[]): string {
+  const names = (device.devicesOnAccount ?? [])
+    .map((id) => household.find((d) => d.id === id)?.name)
+    .filter(Boolean) as string[];
+  const other = (device.otherDevicesOnAccount || '').trim();
+  if (!names.length && !other) return '—';
+  const parts = [...names];
+  if (other) parts.push(`+ ${other}`);
+  return parts.join(', ');
+}
+
 function StatusBadge({ status }: { status: ConflictSeverity }) {
   const content = {
     conflict: ['Conflict', 'bg-[#fff0eb] text-[#a53c28] border-[#f4d1c8]'],
@@ -71,15 +82,14 @@ export function Matrix({
       <div className="mb-7 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="mb-2 text-xs font-bold uppercase tracking-[.16em] text-[#5363b1]">
-            Andy’s planner · {devices.length} devices
+            Andrew’s planner · {devices.length} devices
           </p>
           <h1 className="text-[30px] font-bold tracking-[-.035em] md:text-[40px]">
-            Andy’s Master Matrix
+            Andrew’s Master Matrix
           </h1>
           <p className="mt-2 max-w-2xl text-base text-[#68758c]">
-            Every known device—including newly added ones—in one conflict map. Incoming{' '}
-            <code className="rounded bg-[#eef1ff] px-1.5 py-0.5 text-sm">#ci=</code> links upsert
-            automatically.
+            Every known device—including newly added ones—in one conflict map. Export or import JSON
+            if you need a backup.
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
@@ -126,7 +136,7 @@ export function Matrix({
             <strong>
               {reviewCount} review item{reviewCount === 1 ? '' : 's'}
             </strong>
-            <span>Shared purchases / watch / iMessage</span>
+            <span>Purchases / devices / watch / iMessage</span>
           </div>
         </div>
         <div className="summary-card">
@@ -166,7 +176,7 @@ export function Matrix({
 
       <div className="overflow-hidden rounded-2xl border border-[#dfe4ec] bg-white shadow-[0_12px_38px_rgba(31,44,78,.06)]">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] border-collapse text-left">
+          <table className="w-full min-w-[1280px] border-collapse text-left">
             <caption className="sr-only">Apple accounts and services by device</caption>
             <thead>
               <tr className="border-b border-[#dfe4ec] bg-[#f8f9fc]">
@@ -174,6 +184,7 @@ export function Matrix({
                   'Device & owner',
                   'OS version',
                   'Primary Apple Account',
+                  'Devices on account',
                   'Media & Purchases',
                   'Messages / FaceTime',
                   'Status',
@@ -223,6 +234,11 @@ export function Matrix({
                       {device.platform === 'watchOS'
                         ? device.watchPaired || 'Paired to iPhone?'
                         : device.primaryAppleId || '—'}
+                    </td>
+                    <td className="px-5 py-5 text-sm font-medium text-[#37445c]">
+                      {device.platform === 'watchOS'
+                        ? '—'
+                        : linkedDevicesLabel(device, devices)}
                     </td>
                     <td className="px-5 py-5 text-sm font-medium text-[#37445c]">
                       {device.platform === 'watchOS' ? '—' : device.mediaPurchases || '—'}

@@ -105,23 +105,29 @@ export function analyzeConflicts(devices: DeviceCI[]): ConflictFlag[] {
     });
   }
 
-  // Watch pairing reminders
+  // Unrecognised / leftover devices still on the Apple Account
+  for (const d of filled) {
+    if (d.platform === 'watchOS') continue;
+    const extras = (d.otherDevicesOnAccount || '').trim();
+    if (!extras) continue;
+    flags.push({
+      id: `orphan-devices:${d.id}`,
+      severity: 'review',
+      title: 'Unrecognised devices on Apple Account',
+      detail: `${d.name}: also lists “${extras}” under Devices — plan Remove from Account before sign-out if they are old or unknown.`,
+      deviceIds: [d.id],
+    });
+  }
+
+  // Watch: need to know which iPhone’s Watch app shows it
   for (const d of devices) {
     if (d.platform !== 'watchOS') continue;
     if (!d.watchPaired || d.watchPaired.startsWith('Not paired')) {
       flags.push({
         id: `watch-pair:${d.id}`,
         severity: 'review',
-        title: 'Apple Watch pairing needs confirmation',
-        detail: `${d.name}: confirm which iPhone it is paired to before any Apple ID sign-out on that phone.`,
-        deviceIds: [d.id],
-      });
-    } else if (d.pairingVerifiedBeforeSignOut !== 'Yes — switched on') {
-      flags.push({
-        id: `watch-verify:${d.id}`,
-        severity: 'review',
-        title: 'Verify watch pairing before iPhone sign-out',
-        detail: `${d.name}: re-check pairing in the Watch app before signing the primary iPhone out of Apple ID.`,
+        title: 'Apple Watch phone not recorded',
+        detail: `${d.name}: open the Watch app on Mum’s or Dad’s iPhone and note which phone lists this watch under My Watch.`,
         deviceIds: [d.id],
       });
     }

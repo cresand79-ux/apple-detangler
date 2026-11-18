@@ -8,6 +8,8 @@ function blankAnswers(
     deviceNameSeen: '',
     softwareVersion: '',
     primaryAppleId: '',
+    devicesOnAccount: [],
+    otherDevicesOnAccount: '',
     mediaPurchases: '',
     messagesFaceTime: '',
     contactsIcloud: '',

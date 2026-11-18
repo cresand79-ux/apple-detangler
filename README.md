@@ -13,7 +13,7 @@ Example: `https://<user>.github.io/apple-detangler/`
 ## Features
 
 - **6 pre-configured household devices** (`mum-iphone`, `mum-watch`, `mum-macbook`, `dad-imac`, `dad-ipad`, `dad-iphone`) plus **+ Add Another Device**
-- Expandable inspector with plain-English questions and “where to tap” Settings diagrams
+- Expandable inspector with plain-English questions and CSS “where to tap” mockups per platform (modern iPhone, older iPad two-column Settings, macOS System Settings / Messages)
 - watchOS-specific pairing / version / pre-sign-out checks
 - Auto-save on every keystroke to `localStorage`
 - `#ci=` single-device passport links (lz-string) — upsert by `device.id`

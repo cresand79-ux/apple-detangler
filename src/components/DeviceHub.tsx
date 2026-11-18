@@ -23,10 +23,10 @@ export function DeviceHub({
             Device selection hub · {checkedCount} of {devices.length} checked
           </p>
           <h1 className="text-[30px] font-bold tracking-[-.035em] md:text-[40px]">
-            Which device are you holding?
+            Which device are you checking?
           </h1>
           <p className="mt-2 max-w-2xl text-base text-[#68758c] md:text-[17px]">
-            Choose a device to check its Apple Account details, or add one that isn’t listed.
+            Choose a card for the Apple device you’re looking at, or add one that isn’t listed.
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#e8f6f1] px-4 py-2 text-sm font-bold text-[#18765e]">
@@ -34,18 +34,18 @@ export function DeviceHub({
         </div>
       </div>
 
-      <div className="mb-7 overflow-hidden rounded-2xl border border-[#ccd4f0] bg-[#eef1ff]">
+      <div className="mb-7 overflow-hidden rounded-2xl border border-[#f0d9b8] bg-[#fff8ef]">
         <div className="flex gap-4 p-5 md:px-6">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#3f51ad] text-white">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#c47a2c] text-white">
             <Users size={20} />
           </span>
           <div>
-            <h2 className="text-lg font-bold text-[#243474]">
-              Let’s account for every Apple device in the house
+            <h2 className="text-lg font-bold text-[#7a4a12]">
+              Stay on this computer for every device
             </h2>
-            <p className="mt-1 text-[15px] leading-6 text-[#4d5a78]">
-              Tap the matching card on each device. Finished checks are marked in green. Progress
-              auto-saves on this browser.
+            <p className="mt-1 text-[15px] leading-6 text-[#6e5328]">
+              Fill in all of the cards here—don’t switch to another phone or computer partway
+              through. Answers only save in this browser; starting again elsewhere will look empty.
             </p>
           </div>
         </div>
