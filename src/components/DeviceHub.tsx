@@ -1,6 +1,7 @@
-import { ArrowRight, Check, Clock, Copy, Lock, Mail, Plus, Users } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Clock, Copy, Lock, Mail, Plus, Users } from 'lucide-react';
 import { useState } from 'react';
 import { deviceSubtitle } from '../data/presets';
+import { navigateToMode } from '../lib/appMode';
 import {
   buildHouseholdShareUrl,
   copyText,
@@ -88,6 +89,24 @@ export function DeviceHub({
           </div>
         </div>
       </div>
+
+      <button
+        className="mb-7 flex w-full items-center gap-4 rounded-2xl border border-[#ccd4f0] bg-white p-5 text-left shadow-[0_8px_24px_rgba(31,44,78,.04)] transition hover:border-[#aeb9df] hover:bg-[#f8f9ff]"
+        onClick={() => navigateToMode('guide')}
+        type="button"
+      >
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#3446a5] text-white">
+          <BookOpen size={20} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-lg font-bold text-[#243474]">Setup guide</span>
+          <span className="mt-0.5 block text-[14px] leading-5 text-[#5a6785]">
+            Step-by-step taps to move Dad onto his own Apple Account, share passwords, and set
+            recovery contacts.
+          </span>
+        </span>
+        <ArrowRight className="shrink-0 text-[#4052a8]" size={18} />
+      </button>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {devices.map((device) => (

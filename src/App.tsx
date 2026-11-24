@@ -4,6 +4,7 @@ import { DeviceHub } from './components/DeviceHub';
 import { Inspector } from './components/Inspector';
 import { Matrix } from './components/Matrix';
 import { Runbook } from './components/Runbook';
+import { GuideApp } from './guide/GuideApp';
 import { createCustomDevice } from './data/presets';
 import { modeFromPath, navigateToMode, restoreGhPagesRedirect, type AppMode } from './lib/appMode';
 import { decodeCi, decodeHousehold, decodePlan, parseHash } from './lib/hashCodec';
@@ -37,7 +38,8 @@ function upsertMany(list: DeviceCI[], incoming: DeviceCI[]): DeviceCI[] {
 }
 
 function initialView(mode: AppMode): View {
-  return mode === 'planner' ? 'matrix' : 'hub';
+  if (mode === 'planner') return 'matrix';
+  return 'hub';
 }
 
 export default function App() {
@@ -75,6 +77,7 @@ export default function App() {
       const next = modeFromPath();
       setMode(next);
       setView((current) => {
+        if (next === 'guide') return current;
         if (next === 'planner' && (current === 'hub' || current === 'inspector')) return 'matrix';
         if (next === 'collect' && (current === 'matrix' || current === 'runbook')) return 'hub';
         return current;
@@ -185,6 +188,10 @@ export default function App() {
     const idx = presets.findIndex((d) => d.id === selected.id);
     return idx >= 0 ? `Device ${idx + 1} of ${presets.length}` : 'Device check';
   })();
+
+  if (mode === 'guide') {
+    return <GuideApp />;
+  }
 
   return (
     <AppShell

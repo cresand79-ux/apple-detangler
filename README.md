@@ -10,10 +10,13 @@ Base path: `/apple-detangler/`
 
 Example: `https://<user>.github.io/apple-detangler/`
 
+Click-through setup guide: `https://<user>.github.io/apple-detangler/guide/`
+
 ## Features
 
 - **6 pre-configured household devices** (`mum-iphone`, `mum-watch`, `mum-macbook`, `dad-imac`, `dad-ipad`, `dad-iphone`) plus **+ Add Another Device**
 - Expandable inspector with plain-English questions and CSS “where to tap” mockups per platform (modern iPhone, older iPad two-column Settings, macOS System Settings / Messages)
+- **Setup guide** (`/guide/`) — click-level storyboard for Dad’s account migration, shared passwords, recovery/legacy contacts
 - watchOS-specific pairing / version / pre-sign-out checks
 - Auto-save on every keystroke to `localStorage`
 - `#ci=` single-device passport links (lz-string) — upsert by `device.id`

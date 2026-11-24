@@ -1,18 +1,21 @@
-export type AppMode = 'collect' | 'planner';
+export type AppMode = 'collect' | 'planner' | 'guide';
 
 function basePath(): string {
   return import.meta.env.BASE_URL.replace(/\/?$/, '/');
 }
 
-/** Parent-facing collect home, or Andrew’s planner at …/matrix */
+/** Parent collect home, Andrew’s planner at …/matrix, click guide at …/guide */
 export function modeFromPath(pathname = window.location.pathname): AppMode {
   const normalized = pathname.replace(/\/+$/, '') || '/';
   if (normalized.endsWith('/matrix')) return 'planner';
+  if (normalized.endsWith('/guide')) return 'guide';
   return 'collect';
 }
 
 export function pathForMode(mode: AppMode): string {
-  return mode === 'planner' ? `${basePath()}matrix` : basePath();
+  if (mode === 'planner') return `${basePath()}matrix`;
+  if (mode === 'guide') return `${basePath()}guide`;
+  return basePath();
 }
 
 export function navigateToMode(mode: AppMode): void {
