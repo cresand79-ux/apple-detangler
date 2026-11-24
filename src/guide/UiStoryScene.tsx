@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { MUM_EMAIL } from './household';
+import { DAD_EMAIL, MUM_EMAIL } from './household';
 import type { Panel } from './types';
 
 function RedCross() {
@@ -704,7 +704,7 @@ export function UiStoryScene({ panel }: { panel: Panel }) {
           <ScreenHeader title="Cresswell Household" />
           <Group>
             <UiRow
-              detail="peter_cresswell@myself.com"
+              detail={DAD_EMAIL}
               icon="P"
               title="Peter Cresswell"
               trailing="✓"
